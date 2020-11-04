@@ -5,28 +5,34 @@ import 'package:cpub/utils.dart';
 import 'package:process_run/cmd_run.dart' as shell;
 
 const get = 'get';
-const update = 'update';
+const upgrade = 'upgrade';
 
 Future run(ArgResults argResults) async {
   final paths = argResults.rest;
 
   if (paths.isEmpty) {
     // await stdin.pipe(stdout);
-    print('input cpub get or cpub update');
+    print('error, run cpub $get or cpub $upgrade');
   } else {
     final cmd = paths.first;
-    Scanning()..start(cmd);
+    final list = await Scanning().start(cmd);
+    for (var name in list) {
+      print('package name ========$name');
+      await shell.run('flutter', ['pub', cmd, name], verbose: true);
+    }
   }
 }
 
 ///扫描文件
 class Scanning {
-  var root;
+  ///声明set集合
+  final modules = <String>{};
 
-  void start(String cmd) async {
-    root = localePath();
+  Future<Set<String>> start(String cmd) async {
+    final root = localePath();
 
     await scanning(root, cmd);
+    return modules;
   }
 
   Future<void> scanning(String path, String cmd) async {
@@ -36,15 +42,10 @@ class Scanning {
         var path = entity.path;
 
         if (isYaml(path)) {
-          print('scanning ===$path');
-          ///cd到 dir
-          await shell.run('cd', [dir.path], verbose: true);
-
           ///执行，pub get or update
-          await shell.run('flutter', ['pub', cmd], verbose: true);
+          final packageName = dir.path.split('/').last;
 
-          ///回到root
-          await shell.run('cd', [root], verbose: true);
+          modules.add(packageName);
         } else {
           ///目录
           if (!path.contains('.')) {
