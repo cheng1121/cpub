@@ -11,3 +11,8 @@ bool isYaml(String path) {
   return path.endsWith('.yaml');
 }
 
+String getModuleName(String path){
+  return path.split('/').last;
+}
+
+

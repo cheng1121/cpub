@@ -17,7 +17,6 @@ Future run(ArgResults argResults) async {
     final cmd = paths.first;
     final list = await Scanning().start(cmd);
     for (var name in list) {
-      print('package name ========$name');
       await shell.run('flutter', ['pub', cmd, name], verbose: true);
     }
   }
@@ -32,6 +31,10 @@ class Scanning {
     final root = localePath();
 
     await scanning(root, cmd);
+    var rootModule = getModuleName(root);
+    modules.removeWhere((element) => element == rootModule);
+    modules.add(rootModule);
+    print('all packages =======$modules');
     return modules;
   }
 
@@ -43,7 +46,7 @@ class Scanning {
 
         if (isYaml(path)) {
           ///执行，pub get or update
-          final packageName = dir.path.split('/').last;
+          final packageName = getModuleName(dir.path);
 
           modules.add(packageName);
         } else {
