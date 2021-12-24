@@ -4,10 +4,10 @@ import 'package:args/args.dart';
 import 'package:cpub/utils.dart';
 import 'package:process_run/cmd_run.dart' as shell;
 
-const get = 'get';
-const upgrade = 'upgrade';
+const String get = 'get';
+const String upgrade = 'upgrade';
 
-Future run(ArgResults argResults) async {
+Future<void> run(ArgResults argResults) async {
   final paths = argResults.rest;
 
   if (paths.isEmpty) {
@@ -15,9 +15,10 @@ Future run(ArgResults argResults) async {
     print('error, run cpub $get or cpub $upgrade');
   } else {
     final cmd = paths.first;
-    final list = await Scanning().start(cmd);
-    for (var name in list) {
-      await shell.run('flutter', ['pub', cmd, name], verbose: true);
+    final Set<String> list = await Scanning().start(cmd);
+    for (String name in list) {
+      await shell.runExecutableArguments('flutter', ['pub', cmd, name],
+          verbose: true);
     }
   }
 }
@@ -25,10 +26,10 @@ Future run(ArgResults argResults) async {
 ///扫描文件
 class Scanning {
   ///声明set集合
-  final modules = <String>{};
+  final Set<String> modules = <String>{};
 
   Future<Set<String>> start(String cmd) async {
-    final root = localePath();
+    final String root = localePath();
 
     await scanning(root, cmd);
     var rootModule = getModuleName(root);
@@ -39,14 +40,14 @@ class Scanning {
   }
 
   Future<void> scanning(String path, String cmd) async {
-    final dir = Directory(path);
+    final Directory dir = Directory(path);
     if (dir.existsSync()) {
-      for (var entity in dir.listSync()) {
+      for (FileSystemEntity entity in dir.listSync()) {
         var path = entity.path;
 
         if (isYaml(path)) {
           ///执行，pub get or update
-          final packageName = getModuleName(dir.path);
+          final String packageName = getModuleName(dir.path);
 
           modules.add(packageName);
         } else {
