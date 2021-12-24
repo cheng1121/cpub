@@ -7,7 +7,7 @@
 使用pub
 
 ```
-cpub: ^0.0.4
+cpub: ^0.0.5
 ```
 ##### 激活cpub命令行工具
 仅使用dart，未使用flutter可以把flutter 前缀改为dart
